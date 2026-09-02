@@ -1,0 +1,1 @@
+card,game,family,mystery,guessing,multiplayer,party,friends,offline,casual

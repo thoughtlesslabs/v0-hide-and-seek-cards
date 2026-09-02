@@ -1,0 +1,14 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.thoughtlesslabs.hideandseekcards",
+      "sha256_cert_fingerprints": [
+        "47:36:4D:D0:CB:E4:70:E6:5F:23:94:3D:7B:03:D2:11:B4:3B:7F:E7:8A:E8:5E:0F:76:D7:37:FE:1E:EB:21:66",
+        "CC:29:05:FD:CC:1B:E4:32:63:BA:E3:34:32:27:EA:E4:83:0A:0E:F4:89:57:35:74:DC:FF:A3:82:7F:1F:D2:43",
+        "B0:2A:A7:00:5D:39:C8:B8:EC:37:AC:E6:A9:2E:C6:49:B6:C0:22:CF:82:91:91:B2:20:F8:3A:26:4F:78:96:54"
+      ]
+    }
+  }
+]

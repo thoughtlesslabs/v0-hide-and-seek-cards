@@ -1,0 +1,15 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["4SF8573TA6.com.thoughtlesslabs.hideandseekcards"],
+        "components": [
+          {
+            "/": "/join/*",
+            "comment": "Matches Hide & Seek Cards private-room invitation links."
+          }
+        ]
+      }
+    ]
+  }
+}

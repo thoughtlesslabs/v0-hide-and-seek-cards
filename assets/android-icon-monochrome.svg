@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <mask id="symbol">
+      <rect width="1024" height="1024" fill="#000"/>
+      <g transform="translate(512 510) rotate(-7) scale(.78)" fill="#fff">
+        <path d="M0-347 31-280 105-272 51-221 65-148 0-183-65-148-51-221-105-272-31-280Z"/>
+        <rect x="-230" y="-315" width="460" height="630" rx="58"/>
+        <path d="M0-128c-148 0-238 116-238 190S-148 252 0 252 238 136 238 62 148-128 0-128Z"/>
+      </g>
+      <g transform="translate(512 510) rotate(-7) scale(.78)" fill="#000">
+        <rect x="-190" y="-275" width="380" height="550" rx="36"/>
+        <path d="M0-75c-96 0-158 74-158 137S-96 199 0 199 158 125 158 62 96-75 0-75Z"/>
+      </g>
+      <g transform="translate(512 510) rotate(-7) scale(.78)" fill="#fff">
+        <circle cy="62" r="88"/>
+      </g>
+      <g transform="translate(512 510) rotate(-7) scale(.78)" fill="#000">
+        <circle cy="62" r="42"/>
+      </g>
+    </mask>
+  </defs>
+  <rect width="1024" height="1024" fill="#fff" mask="url(#symbol)"/>
+</svg>

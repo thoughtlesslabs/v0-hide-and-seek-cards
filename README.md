@@ -1,30 +1,56 @@
-# Hide and Seek Cards
+# Hide & Seek Cards
 
-*Automatically synced with your [v0.app](https://v0.app) deployments*
+A production-oriented, family-friendly guessing card game for the web, iPhone, and Android. Players choose someone to seek and reveal one hiding place. After every reveal, all remaining cards move before the next player's turn.
 
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/thoughtlesslabs-projects/v0-hide-and-seek-cards)
-[![Built with v0](https://img.shields.io/badge/Built%20with-v0.app-black?style=for-the-badge)](https://v0.app/chat/cuO6jrCU7TA)
+## What is included
 
-## Overview
+- Bundled React/Vite game client with offline solo play
+- Capacitor 8 projects for iOS and Android
+- Server-authoritative Socket.IO multiplayer with signed anonymous sessions
+- Private six-character room codes and public matchmaking
+- Redis-backed game snapshots with an in-memory development fallback
+- Responsive phone, tablet, landscape, safe-area, reduced-motion, and high-contrast layouts
+- Eight locally bundled character portraits, native icon, splash screen, sound cues, and haptics
+- Docker Compose deployment with Caddy HTTPS/WSS and Redis persistence
 
-This repository will stay in sync with your deployed chats on [v0.app](https://v0.app).
-Any changes you make to your deployed app will be automatically pushed to this repository from [v0.app](https://v0.app).
+## Local development
 
-## Deployment
+Requirements: Node.js 22–26 and pnpm 11.
 
-Your project is live at:
+```bash
+pnpm install
+pnpm dev
+```
 
-**[https://vercel.com/thoughtlesslabs-projects/v0-hide-and-seek-cards](https://vercel.com/thoughtlesslabs-projects/v0-hide-and-seek-cards)**
+The client runs at `http://localhost:5173`; the game server runs at `http://localhost:8787`. Redis is optional in development.
 
-## Build your app
+## Quality gates
 
-Continue building your app on:
+```bash
+pnpm lint
+pnpm typecheck
+pnpm test:run
+pnpm build
+```
 
-**[https://v0.app/chat/cuO6jrCU7TA](https://v0.app/chat/cuO6jrCU7TA)**
+## Native apps
 
-## How It Works
+Build and sync the bundled client:
 
-1. Create and modify your project using [v0.app](https://v0.app)
-2. Deploy your chats from the v0 interface
-3. Changes are automatically pushed to this repository
-4. Vercel deploys the latest version from this repository
+```bash
+VITE_GAME_SERVER_URL=https://play.example.com pnpm cap:sync:release
+pnpm cap:open:ios
+pnpm cap:open:android
+```
+
+Release builds intentionally do not use Capacitor `server.url`; the game client is packaged inside each app. Replace the example server URL with the deployed HTTPS origin before syncing. The release-sync command rejects missing, local, non-HTTPS, and placeholder origins.
+
+Every client build also emits `native-release.json` plus an equivalent iOS property-list marker. Android and iOS Release builds compare their marker with the packaged JavaScript and fail before packaging if the final validated origin is missing or stale. Development builds and the same-origin web deployment remain unaffected.
+
+See [Native release](docs/NATIVE_RELEASE.md) and [Store release checklist](docs/STORE_RELEASE_CHECKLIST.md).
+
+## VPS deployment
+
+Copy `.env.example` to `.env`, set the domain and generated secrets, then follow [Deployment](docs/DEPLOYMENT.md). The initial production shape is one authoritative game-server replica behind Caddy plus Redis with AOF persistence.
+
+Architecture, privacy, and release-art ownership details are in [Architecture](docs/ARCHITECTURE.md), [Privacy policy](docs/PRIVACY_POLICY.md), and [Asset provenance](docs/ASSET_PROVENANCE.md).

@@ -1,0 +1,28 @@
+{
+  "name": "Hide & Seek Cards",
+  "short_name": "Hide & Seek",
+  "id": "/",
+  "lang": "en",
+  "description": "A wickedly funny party game of moving cards, bad luck, and cartoon doom.",
+  "start_url": "./",
+  "scope": "/",
+  "categories": ["games", "entertainment"],
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#120a18",
+  "theme_color": "#63348c",
+  "icons": [
+    {
+      "src": "assets/icons/icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "assets/icons/icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ]
+}

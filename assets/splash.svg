@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2732 2732">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="42%" r="70%">
+      <stop offset="0" stop-color="#39245f"/>
+      <stop offset=".6" stop-color="#17102d"/>
+      <stop offset="1" stop-color="#090712"/>
+    </radialGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#fff0a8"/><stop offset=".5" stop-color="#f4bf4f"/><stop offset="1" stop-color="#bd6e2b"/>
+    </linearGradient>
+    <filter id="glow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="35" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <rect width="2732" height="2732" fill="url(#bg)"/>
+  <circle cx="1366" cy="1278" r="660" fill="none" stroke="#654b91" stroke-width="10" opacity=".4"/>
+  <g transform="translate(1366 1240) rotate(-8)" filter="url(#glow)">
+    <rect x="-330" y="-465" width="660" height="930" rx="78" fill="#15102c" stroke="url(#gold)" stroke-width="34"/>
+    <rect x="-275" y="-410" width="550" height="820" rx="45" fill="none" stroke="#8a63af" stroke-width="13"/>
+    <path d="M0-210c-176 0-286 161-286 250S-176 290 0 290 286 129 286 40 176-210 0-210z" fill="#251944" stroke="#f4bf4f" stroke-width="22"/>
+    <path d="M0-140c-112 0-184 107-184 180S-112 220 0 220 184 113 184 40 112-140 0-140z" fill="#f6d77d"/>
+    <circle cy="40" r="109" fill="#6b4b96"/><circle cx="33" cy="5" r="31" fill="#d9f7ff"/>
+  </g>
+  <g fill="#73e3db" filter="url(#glow)">
+    <ellipse cx="768" cy="1778" rx="58" ry="82" transform="rotate(-32 768 1778)"/>
+    <circle cx="690" cy="1686" r="26"/><circle cx="722" cy="1643" r="24"/><circle cx="770" cy="1628" r="23"/>
+    <ellipse cx="1992" cy="748" rx="52" ry="78" transform="rotate(148 1992 748)"/>
+    <circle cx="2058" cy="832" r="25"/><circle cx="2027" cy="874" r="23"/><circle cx="1981" cy="888" r="22"/>
+  </g>
+  <text x="1366" y="2190" text-anchor="middle" fill="#fff4cf" font-family="Georgia,serif" font-size="142" font-weight="700" letter-spacing="24">HIDE &amp; SEEK</text>
+  <text x="1366" y="2360" text-anchor="middle" fill="#e9b85d" font-family="Georgia,serif" font-size="86" letter-spacing="38">CARDS</text>
+</svg>

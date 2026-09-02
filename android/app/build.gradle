@@ -1,0 +1,164 @@
+import groovy.json.JsonSlurper
+
+apply plugin: 'com.android.application'
+
+def releaseSigningProperties = new Properties()
+def releaseSigningPropertiesFile = rootProject.file('keystore.properties')
+if (releaseSigningPropertiesFile.exists()) {
+    releaseSigningPropertiesFile.withInputStream { releaseSigningProperties.load(it) }
+}
+
+def signingValue = { String propertyName, String environmentName ->
+    System.getenv(environmentName) ?: releaseSigningProperties.getProperty(propertyName)
+}
+def releaseStoreFile = signingValue('storeFile', 'HSC_RELEASE_STORE_FILE')
+def releaseStorePassword = signingValue('storePassword', 'HSC_RELEASE_STORE_PASSWORD')
+def releaseKeyAlias = signingValue('keyAlias', 'HSC_RELEASE_KEY_ALIAS')
+def releaseKeyPassword = signingValue('keyPassword', 'HSC_RELEASE_KEY_PASSWORD')
+def releaseSigningValues = [releaseStoreFile, releaseStorePassword, releaseKeyAlias, releaseKeyPassword]
+def releaseSigningValueCount = releaseSigningValues.count { it != null && !it.toString().trim().isEmpty() }
+if (releaseSigningValueCount > 0 && releaseSigningValueCount < releaseSigningValues.size()) {
+    throw new GradleException('Release signing is only partially configured. Provide all four HSC_RELEASE_* values or every keystore.properties field.')
+}
+def releaseSigningConfigured = releaseSigningValueCount == releaseSigningValues.size()
+
+android {
+    namespace = "com.thoughtlesslabs.hideandseekcards"
+    compileSdk = rootProject.ext.compileSdkVersion
+    defaultConfig {
+        applicationId "com.thoughtlesslabs.hideandseekcards"
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode 1
+        versionName "1.0.0"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        aaptOptions {
+             // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
+             // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
+            ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
+        }
+    }
+    signingConfigs {
+        release {
+            if (releaseSigningConfigured) {
+                storeFile = rootProject.file(releaseStoreFile)
+                storePassword = releaseStorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
+            }
+        }
+    }
+    buildTypes {
+        release {
+            if (releaseSigningConfigured) {
+                signingConfig = signingConfigs.release
+            }
+            minifyEnabled = true
+            shrinkResources = true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+repositories {
+    flatDir{
+        dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
+    implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
+    implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
+    implementation project(':capacitor-android')
+    testImplementation "junit:junit:$junitVersion"
+    androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
+    androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
+    implementation project(':capacitor-cordova-android-plugins')
+}
+
+apply from: 'capacitor.build.gradle'
+
+def releasePackagingTaskNames = ['assembleRelease', 'bundleRelease', 'packageRelease', 'packageReleaseBundle']
+def verifyNativeReleaseAssets = tasks.register('verifyNativeReleaseAssets') {
+    group = 'verification'
+    description = 'Verifies that synchronized web assets target an explicit production server before an Android release build.'
+    outputs.upToDateWhen { false }
+    onlyIf {
+        gradle.taskGraph.allTasks.any { graphTask ->
+            graphTask.project == project && graphTask.name in releasePackagingTaskNames
+        }
+    }
+
+    doLast {
+        def publicAssetsDirectory = file('src/main/assets/public')
+        def releaseMarkerFile = new File(publicAssetsDirectory, 'native-release.json')
+        if (!releaseMarkerFile.isFile()) {
+            throw new GradleException("Android release blocked: missing synchronized native release marker at ${releaseMarkerFile}.")
+        }
+
+        def releaseMarker
+        try {
+            releaseMarker = new JsonSlurper().parse(releaseMarkerFile)
+        } catch (Exception error) {
+            throw new GradleException("Android release blocked: ${releaseMarkerFile} is not valid JSON.", error)
+        }
+
+        if (!(releaseMarker instanceof Map)) {
+            throw new GradleException("Android release blocked: ${releaseMarkerFile} must contain a JSON object.")
+        }
+        if (!(releaseMarker.schemaVersion instanceof Integer) || releaseMarker.schemaVersion != 1) {
+            throw new GradleException("Android release blocked: ${releaseMarkerFile} must declare schemaVersion 1.")
+        }
+        if (releaseMarker.mode != 'native-release') {
+            throw new GradleException("Android release blocked: ${releaseMarkerFile} must declare mode \"native-release\".")
+        }
+
+        def serverOrigin = releaseMarker.serverOrigin
+        if (!(serverOrigin instanceof String) || serverOrigin.isEmpty() || serverOrigin != serverOrigin.trim()) {
+            throw new GradleException("Android release blocked: ${releaseMarkerFile} must declare a non-empty serverOrigin.")
+        }
+
+        def parsedOrigin
+        try {
+            parsedOrigin = new URI(serverOrigin)
+        } catch (Exception error) {
+            throw new GradleException("Android release blocked: serverOrigin \"${serverOrigin}\" is not a valid URI.", error)
+        }
+        if (parsedOrigin.scheme != 'https' || !parsedOrigin.host || parsedOrigin.userInfo != null ||
+            (parsedOrigin.rawPath != null && !parsedOrigin.rawPath.isEmpty()) || parsedOrigin.rawQuery != null ||
+            parsedOrigin.rawFragment != null) {
+            throw new GradleException('Android release blocked: serverOrigin must be an HTTPS origin without credentials, a path, query parameters, or a fragment.')
+        }
+
+        def packagedJavaScriptFiles = fileTree(publicAssetsDirectory) {
+            include '**/*.js'
+        }.files
+        if (packagedJavaScriptFiles.isEmpty()) {
+            throw new GradleException("Android release blocked: no packaged JavaScript files were found under ${publicAssetsDirectory}.")
+        }
+
+        def originBearingFile = packagedJavaScriptFiles.find { packagedFile ->
+            packagedFile.getText('UTF-8').contains(serverOrigin)
+        }
+        if (originBearingFile == null) {
+            throw new GradleException("Android release blocked: no packaged public JavaScript file contains the exact serverOrigin \"${serverOrigin}\".")
+        }
+    }
+}
+
+tasks.configureEach { candidateTask ->
+    if (candidateTask.name == 'preReleaseBuild') {
+        candidateTask.dependsOn verifyNativeReleaseAssets
+    }
+}
+
+try {
+    def servicesJSON = file('google-services.json')
+    if (servicesJSON.text) {
+        apply plugin: 'com.google.gms.google-services'
+    }
+} catch(Exception e) {
+    logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
+}

@@ -1,0 +1,57 @@
+# Dependencies and build output
+node_modules/
+.pnpm-store/
+dist/
+server-dist/
+coverage/
+.vite/
+.next/
+*.tsbuildinfo
+art/character-sources/
+art/legacy-assets/
+art/pwa-splash-sources/
+art/ios-unused-assets/
+assets/music-masters/*.m4a
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Editors and operating systems
+.DS_Store
+*.swp
+.idea/
+.vscode/
+
+# Native build output and signing material
+android/.gradle/
+android/app/build/
+android/build/
+android/local.properties
+ios/App/Pods/
+ios/App/DerivedData/
+ios/App/build/
+ios/App/CapApp-SPM/build/
+ios/App/CapApp-SPM/.swiftpm/
+ios/App/App.xcworkspace/xcuserdata/
+*.jks
+*.keystore
+*.mobileprovision
+*.p12
+*.p8
+*.pem
+*.key
+key.properties
+keystore.properties
+*.apk
+*.aab
+*.ipa
+*.xcarchive/
+*.dSYM/
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+test-results/

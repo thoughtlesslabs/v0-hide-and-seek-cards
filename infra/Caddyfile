@@ -1,0 +1,42 @@
+{
+	email {$ACME_EMAIL}
+	admin off
+}
+
+{$APP_DOMAIN} {
+	encode zstd gzip
+
+	header {
+		-Server
+		Content-Security-Policy "default-src 'self'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'; object-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self' blob:"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
+		Strict-Transport-Security "max-age=15552000"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+	}
+
+	@freshAppShell path / /index.html /sw.js /manifest.webmanifest
+	header @freshAppShell Cache-Control "no-cache"
+
+	handle /healthz {
+		reverse_proxy app:8787
+	}
+	handle /readyz {
+		reverse_proxy app:8787
+	}
+
+	handle {
+		reverse_proxy app:8787 {
+			health_uri /healthz
+			health_interval 15s
+			health_timeout 5s
+			lb_try_duration 5s
+		}
+	}
+
+	log {
+		output stdout
+		format json
+	}
+}

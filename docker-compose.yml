@@ -1,0 +1,124 @@
+name: hide-and-seek-cards
+
+x-logging: &default-logging
+  driver: local
+  options:
+    max-size: "10m"
+    max-file: "5"
+
+services:
+  caddy:
+    image: caddy:2.10-alpine
+    restart: unless-stopped
+    depends_on:
+      app:
+        condition: service_healthy
+    environment:
+      APP_DOMAIN: ${APP_DOMAIN:?Set APP_DOMAIN in .env}
+      ACME_EMAIL: ${ACME_EMAIL:?Set ACME_EMAIL in .env}
+    ports:
+      - "80:80/tcp"
+      - "443:443/tcp"
+      - "443:443/udp"
+    volumes:
+      - ./infra/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    networks:
+      - edge
+    security_opt:
+      - no-new-privileges:true
+    logging: *default-logging
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    init: true
+    depends_on:
+      redis:
+        condition: service_started
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: 8787
+      CLIENT_DIST_DIR: /app/dist
+      SESSION_SIGNING_SECRET: ${SESSION_SIGNING_SECRET:?Set SESSION_SIGNING_SECRET in .env}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:?Set ALLOWED_ORIGINS in .env}
+      REDIS_URL: redis://:${REDIS_PASSWORD:?Set REDIS_PASSWORD in .env}@redis:6379/0
+      GAME_REDIS_PREFIX: ${GAME_REDIS_PREFIX:-hide-seek:v1}
+      GAME_SNAPSHOT_TTL_SECONDS: ${GAME_SNAPSHOT_TTL_SECONDS:-86400}
+      REDIS_OPERATION_TIMEOUT_MS: ${REDIS_OPERATION_TIMEOUT_MS:-2000}
+      MATCHMAKING_WAIT_MS: ${MATCHMAKING_WAIT_MS:-8000}
+      DISCONNECT_GRACE_MS: ${DISCONNECT_GRACE_MS:-30000}
+      ROOM_IDLE_TTL_MS: ${ROOM_IDLE_TTL_MS:-7200000}
+      TICK_INTERVAL_MS: ${TICK_INTERVAL_MS:-250}
+      SNAPSHOT_RECOVERY_INTERVAL_MS: ${SNAPSHOT_RECOVERY_INTERVAL_MS:-5000}
+      MAX_SOCKET_CONNECTIONS: ${MAX_SOCKET_CONNECTIONS:-2000}
+      MAX_SOCKET_CONNECTIONS_PER_USER: ${MAX_SOCKET_CONNECTIONS_PER_USER:-4}
+      TRUST_PROXY: ${TRUST_PROXY:-1}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    expose:
+      - "8787"
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:8787/healthz').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"
+      interval: 15s
+      timeout: 5s
+      start_period: 20s
+      retries: 5
+    read_only: true
+    tmpfs:
+      - /tmp:size=32m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - edge
+      - data
+    stop_grace_period: 30s
+    logging: *default-logging
+
+  redis:
+    image: redis:7.4-alpine
+    restart: unless-stopped
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?Set REDIS_PASSWORD in .env}
+    command: >-
+      sh -ec 'exec redis-server
+      --appendonly yes
+      --appendfsync everysec
+      --save 60 1000
+      --requirepass "$$REDIS_PASSWORD"
+      --loglevel warning'
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - 'REDISCLI_AUTH="$${REDIS_PASSWORD}" redis-cli ping | grep -q PONG'
+      interval: 10s
+      timeout: 5s
+      start_period: 10s
+      retries: 5
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - data
+    stop_grace_period: 30s
+    logging: *default-logging
+
+networks:
+  edge:
+  data:
+    internal: true
+
+volumes:
+  caddy-data:
+  caddy-config:
+  redis-data:

@@ -1,0 +1,1 @@
+Initial release: play solo against bots, find a Quick Match, or invite friends to a Private Room for a spooky-funny game of luck and deduction.

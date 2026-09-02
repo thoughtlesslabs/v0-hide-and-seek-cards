@@ -1,0 +1,6 @@
+# Fast artifact-only deployment layer for the low-memory VPS. Before building,
+# tag the currently verified production image as the local runtime base.
+FROM hide-and-seek-cards-runtime-base:local
+
+COPY --chown=app:app dist ./dist
+COPY --chown=app:app server-dist ./server-dist

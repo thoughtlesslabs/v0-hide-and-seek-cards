@@ -1,0 +1,12 @@
+# VPS override for a host that already owns ports 80 and 443 with system Caddy.
+# The game app stays private on loopback; system Caddy forwards the public site.
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.vps
+    ports:
+      - "127.0.0.1:8787:8787"
+
+  caddy:
+    profiles: ["bundled-caddy"]
